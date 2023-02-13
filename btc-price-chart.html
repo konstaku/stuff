@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>
+      BTC price chart
+    </title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <div>
+      <canvas id="myChart"></canvas>
+    </div>
+    <script>
+      'use strict'
+      const btcUrl = 'https://api.coingecko.com/api/v3/coins/bitcoin/history?date=1-1-2023';
+      let date = new Date();
+      const symbol = 'bitcoin';
+      const startDate = new Date('2023-01-01');
+
+      async function getStats(url) {
+        const response = await fetch(url);
+        const data = await response.json();
+        const price = data.market_data.current_price.usd
+
+        return price;
+      }
+
+      // Transform from default date format to DD-MM-YYYY for Coingecko
+      function dateTransform(date) {
+        let result = '';
+
+        result += date.getDate();
+        result += '-';
+        result += date.getMonth() + 1;
+        result += '-';
+        result += date.getFullYear();
+
+        return result;
+      }
+
+
+      async function getMonthStats(symbol, startDate) {
+        const priceArray = [];
+        let curDate = startDate;
+
+        for (let i = 0; i < 10; i++) {
+          const url = `https://api.coingecko.com/api/v3/coins/${symbol}/history?date=${dateTransform(curDate)}`;
+
+          await getStats(url)
+            .then(result => {
+              // console.log(Math.trunc(result));
+              // console.log(curDate);
+              priceArray.push({ date: new Date(curDate), price: Math.trunc(result), })
+            });
+
+          curDate.setDate(curDate.getDate() + 1);
+        }
+
+        return priceArray;
+      }
+
+      getMonthStats(symbol, startDate)
+        .then(result => {
+          const ctx = document.getElementById('myChart');
+
+          new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: result.map(value => { return new Intl.DateTimeFormat('en-UK').format(value.date); }),
+              datasets: [{
+                label: 'BTC price history',
+                data: result.map(value => value.price),
+                borderWidth: 1,
+              }]
+            },
+            options: {
+              scales: {
+                y: {
+                  beginAtZero: false,
+                }
+              }
+            }
+          });
+        });
+
+    </script>
+  </body>
+  </html>
