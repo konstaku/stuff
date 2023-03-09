@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>
+      WIP
+    </title>
+    <style>
+      /* The border style highlights borders of all elements so I can figure out how it works */
+/*      body * {
+        border: 1px solid blue;
+      } */
+
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      .ball {
+        position: absolute;
+      }
+
+    </style>
+  </head>
+  <body>
+    <!-- HTML elements go here -->
+    </div>
+    <script>
+      // Script goes here
+      'use strict';
+      const G = 1;
+
+      class Ball {
+        constructor(color, x, y, size) {
+          this.figure = document.createElement('div');
+          this.figure.classList.add('ball');
+          this.x = x;
+          this.y = y;
+          this.size = size;
+          this.floor = window.innerHeight;
+
+          this.speed = 0; // Pixels per tick
+          this.figure.style.left = this.x + 'px';
+          this.figure.style.top = this.y + 'px';
+          this.figure.style.height = size + 'px';
+          this.figure.style.width = size + 'px';
+          this.figure.style.borderRadius = size + 'px';
+          this.figure.style.backgroundColor = '#' + color;
+          document.body.append(this.figure);
+
+          this.speed = 0;
+          this.idle = false;
+          this.vector = { x: 0, y: 0 };
+
+          this.gravity();
+        }
+
+        move(vectors) {
+          this.x += vectors.x;
+          this.y += vectors.y;
+          this.figure.style.left = this.x + 'px';
+          this.figure.style.top = this.y + 'px';
+
+          console.log(`
+            X: ${ this.x }, Y: ${ this.y }
+            BallX: ${ this.figure.style.top }, BallY:${ this.figure.style.left }
+            `);
+        }
+
+        gravity() {
+          // while (!this.idle) 
+          let fall = setInterval(() => {
+            // Accelerating
+            this.speed += G;
+
+            // Check if the ball touched the floor
+            if (this.y >= this.floor - this.size) {
+              clearInterval(fall);
+              this.idle = true;
+              return;
+            }
+
+            // Gravity only affects y in my case
+            this.move({ x: 0, y: this.speed });
+          }, 10) 
+        }
+      }
+
+      function randomColor() {
+        return Math.floor(Math.random() * 16777215).toString(16);
+      }
+
+      let balls = [];
+
+      document.addEventListener('click', event => {
+        const color = randomColor();
+        console.log(color);
+        balls.push(new Ball(color, event.x, event.y, 50));
+        console.log(balls);
+      });
+
+
+    </script>
+  </body>
+  </html>
