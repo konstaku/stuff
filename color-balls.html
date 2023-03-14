@@ -17,6 +17,7 @@
 
       .ball {
         position: absolute;
+        transition: transform;
       }
 
     </style>
@@ -26,31 +27,33 @@
     </div>
     <script>
       // Script goes here
-      'use strict';
+
       const G = 1;
 
       class Ball {
-        constructor(color, x, y, size) {
+        constructor(color = 'fff000', x = 100, y = 100, size = 50) {
           this.figure = document.createElement('div');
           this.figure.classList.add('ball');
           this.x = x;
           this.y = y;
+          this.color = color;
           this.size = size;
           this.floor = window.innerHeight;
 
-          this.speed = 0; // Pixels per tick
           this.figure.style.left = this.x + 'px';
           this.figure.style.top = this.y + 'px';
           this.figure.style.height = size + 'px';
           this.figure.style.width = size + 'px';
           this.figure.style.borderRadius = size + 'px';
-          this.figure.style.backgroundColor = '#' + color;
+          this.figure.style.backgroundColor = '#' + this.color;
           document.body.append(this.figure);
 
-          this.speed = 0;
+          // Once created, the ball is not idle, meaning it can be moved by a gravitational force
           this.idle = false;
+          this.speed = 0;
           this.vector = { x: 0, y: 0 };
 
+          // Once the ball is created, the gravity comes in effect
           this.gravity();
         }
 
@@ -58,28 +61,30 @@
           this.x += vectors.x;
           this.y += vectors.y;
           this.figure.style.left = this.x + 'px';
-          this.figure.style.top = this.y + 'px';
-
-          console.log(`
-            X: ${ this.x }, Y: ${ this.y }
-            BallX: ${ this.figure.style.top }, BallY:${ this.figure.style.left }
-            `);
+          this.figure.style.top = this.y + 'px'; 
         }
 
         gravity() {
+          this.y = this.figure.getBoundingClientRect().top;
+          this.x = this.figure.getBoundingClientRect().left;
+
           // while (!this.idle) 
           let fall = setInterval(() => {
             // Accelerating
             this.speed += G;
 
-            // Check if the ball touched the floor
-            if (this.y >= this.floor - this.size) {
+            console.log(this.speed);
+
+            // Check if the ball is going to touch the floor next move
+            if (this.y + this.speed >= this.floor - this.size) {
+              this.move({ x: 0, y: this.floor - this.y - this.size });
               clearInterval(fall);
               this.idle = true;
+              this.speed = 0;
               return;
             }
 
-            // Gravity only affects y in my case
+            // Gravity only affects y in my case of freefall
             this.move({ x: 0, y: this.speed });
           }, 10) 
         }
@@ -89,15 +94,38 @@
         return Math.floor(Math.random() * 16777215).toString(16);
       }
 
-      let balls = [];
+      const balls = [];
+      let currentBall = null;
 
       document.addEventListener('click', event => {
+        // If I drag a ball, do not handle the click event when I mouse up
+        if (event.target.className === 'ball') return;
+
         const color = randomColor();
-        console.log(color);
-        balls.push(new Ball(color, event.x, event.y, 50));
-        console.log(balls);
+        const ball = new Ball(color, event.x, event.y, 50);
+        balls.push(ball);
       });
 
+      document.addEventListener('mousedown', event => {
+        if (event.target.className != 'ball') return;
+
+        currentBall = event.target;
+        document.addEventListener('mousemove', moveBall);
+        // Clear all other listeners. Needed to create a separate function instead of an inline
+        // otherwise mouseup events will stack and trigger gravity() multiple times 
+        document.addEventListener('mouseup', clearListenersOnMouseUp);
+      });
+
+      function moveBall(event) {
+        currentBall.style.left = event.pageX - currentBall.clientWidth / 2 + 'px';
+        currentBall.style.top = event.pageY - currentBall.clientHeight / 2 + 'px'; 
+      }
+
+      function clearListenersOnMouseUp(event) {
+        document.removeEventListener ('mousemove', moveBall);
+        balls.forEach(ball => ball.gravity());
+        currentBall == null;
+      }
 
     </script>
   </body>
