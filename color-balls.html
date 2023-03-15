@@ -24,7 +24,6 @@
   </head>
   <body>
     <!-- HTML elements go here -->
-    </div>
     <script>
       // Script goes here
 
@@ -106,14 +105,17 @@
         balls.push(ball);
       });
 
-      document.addEventListener('mousedown', event => {
+      document.addEventListener('pointerdown', event => {
         if (event.target.className != 'ball') return;
 
         currentBall = event.target;
-        document.addEventListener('mousemove', moveBall);
+        // Bind the pointer to the ball
+        currentBall.setPointerCapture(event.pointerId);
+
+        document.addEventListener('pointermove', moveBall);
         // Clear all other listeners. Needed to create a separate function instead of an inline
         // otherwise mouseup events will stack and trigger gravity() multiple times 
-        document.addEventListener('mouseup', clearListenersOnMouseUp);
+        document.addEventListener('pointerup', clearListenersOnPointerUp);
       });
 
       function moveBall(event) {
@@ -121,8 +123,8 @@
         currentBall.style.top = event.pageY - currentBall.clientHeight / 2 + 'px'; 
       }
 
-      function clearListenersOnMouseUp(event) {
-        document.removeEventListener ('mousemove', moveBall);
+      function clearListenersOnPointerUp(event) {
+        document.removeEventListener ('pointermove', moveBall);
         balls.forEach(ball => ball.gravity());
         currentBall == null;
       }
