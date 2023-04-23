@@ -1,10 +1,13 @@
-import uniPoolList from './weth_pools_uni_v3.json' assert { type: 'json' };
+import uniPoolListOptimism from './weth_pools_uni_v3_optimism.json' assert { type: 'json' };
+import uniPoolListArbitrum from './weth_pools_uni_v3_arbitrum.json' assert { type: 'json' };
+
 const OPWETH = '0x4200000000000000000000000000000000000006';
+const ARBWETH = '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1';
 
 const poolList = [];
 let poolData = [];
 
-for (const entry of uniPoolList.data.liquidityPools) {
+for (const entry of uniPoolListArbitrum.data.liquidityPools) {
   poolList.push({
     pair: `${entry.inputTokens[0].name}/${entry.inputTokens[1].name}`,
     address: entry.id,
@@ -12,7 +15,7 @@ for (const entry of uniPoolList.data.liquidityPools) {
   });
 }
 
-async function displayHotPools(pools) {
+async function fetchHotPools(pools) {
   // Limit is 30 queries per fetch
 
   let urlBatch = [];
@@ -39,16 +42,18 @@ async function displayHotPools(pools) {
 async function loadBatch(data) {
   await Promise.all(
     data.map(el => {
-      fetch(`https://api.dexscreener.com/latest/dex/pairs/optimism/${el.address}`)
+      fetch(`https://api.dexscreener.com/latest/dex/pairs/arbitrum/${el.address}`)
         .then(resp => resp.json())
-        .then(result => {
-          poolData.push({
-            pair: `${result.pair.baseToken.symbol}/${result.pair.quoteToken.symbol}`,
-            tvl: result.pair.liquidity.usd,
-            volume: result.pair.volume.h24,
-            vitality: Math.round(100 * (result.pair.volume.h24 / result.pair.liquidity.usd)) / 100 * el.fee,
-            address: el.address,
-          });
+        .then(result => { 
+          if (result.pair && result.pair.liquidity.usd > 1000) {
+            poolData.push({
+              pair: `${result.pair.baseToken.symbol}/${result.pair.quoteToken.symbol}`,
+              tvl: result.pair.liquidity.usd,
+              volume: result.pair.volume.h24,
+              vitality: Math.round(100 * (result.pair.volume.h24 / result.pair.liquidity.usd)) / 100 * el.fee,
+              address: el.address,
+            });
+          }
         })
         // Important to do sorting inside the async function, otherwise it doesn't work
         .then(() => poolData.sort((a, b) => b.vitality - a.vitality));
@@ -57,5 +62,5 @@ async function loadBatch(data) {
   );
 }
 
-displayHotPools(poolList)
+fetchHotPools(poolList)
   .then(() => {console.log(poolData)});
