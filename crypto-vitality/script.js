@@ -1,8 +1,10 @@
 import uniPoolListOptimism from './weth_pools_uni_v3_optimism.json' assert { type: 'json' };
 import uniPoolListArbitrum from './weth_pools_uni_v3_arbitrum.json' assert { type: 'json' };
 
+
 const OPWETH = '0x4200000000000000000000000000000000000006';
 const ARBWETH = '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1';
+const CRYPTOCOMPARE_API_KEY = 'efe86f2987b2a724e744667f579ca39e258601ffbdf6c1adf904179c19ceb811';
 
 const poolList = [];
 let poolData = [];
@@ -50,6 +52,7 @@ async function loadBatch(data) {
               pair: `${result.pair.baseToken.symbol}/${result.pair.quoteToken.symbol}`,
               tvl: result.pair.liquidity.usd,
               volume: result.pair.volume.h24,
+              priceChange24: result.pair.priceChange.h24,
               vitality: Math.round(100 * (result.pair.volume.h24 / result.pair.liquidity.usd)) / 100 * el.fee,
               address: el.address,
             });
@@ -63,4 +66,4 @@ async function loadBatch(data) {
 }
 
 fetchHotPools(poolList)
-  .then(() => {console.log(poolData)});
+  .then(() => {console.dir(poolData)});
