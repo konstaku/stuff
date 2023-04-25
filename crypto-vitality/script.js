@@ -1,5 +1,5 @@
-import uniPoolListOptimism from './weth_pools_uni_v3_optimism.json' assert { type: 'json' };
-import uniPoolListArbitrum from './weth_pools_uni_v3_arbitrum.json' assert { type: 'json' };
+import uniPoolListOptimism from './data/weth_pools_uni_v3_optimism.json' assert { type: 'json' };
+import uniPoolListArbitrum from './data/weth_pools_uni_v3_arbitrum.json' assert { type: 'json' };
 
 
 const OPWETH = '0x4200000000000000000000000000000000000006';
