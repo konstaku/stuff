@@ -16,6 +16,7 @@ async function fetchHotPools(pools, network) {
     i++;
 
     if (poolChunk.length == 30) {
+      console.log(`Loading pool chunk, currently ${resultingPoolData.length} elements in result array`);
       await loadBatch(poolChunk, resultingPoolData, network);
       poolChunk = [];
     }
@@ -49,25 +50,25 @@ async function loadBatch(chunk, base, network) {
           vitality: null,
           tvl: results[i].pair.liquidity ? results[i].pair.liquidity.usd : null,
           volume: results[i].pair.volume.h24,
-          fee: chunk[i].fees[2].feePercentage,
+          fee: +chunk[i].fees[2].feePercentage,
           address: results[i].pair.pairAddress,
         };
 
-        pairInfo.vitality = pairInfo.volume / pairInfo.tvl * pairInfo.fee;
+        // IMPORTANT to add || 0, otherwise sort will not work properly
+        pairInfo.vitality = pairInfo.volume / pairInfo.tvl * pairInfo.fee || 0;
         base.push(pairInfo);
       }
 
-      base.sort((a, b) => b.vitality - a.vitality);
+      console.log('base', base);
       return base;
     })
+    .then(result => result.sort((a, b) => b.vitality - a.vitality))
     .catch(e => console.log('Error:', e));
-
-    return base;
 }
 
-fetchHotPools(uniPoolListOptimism, 'optimism')
+fetchHotPools(uniPoolListArbitrum, 'arbitrum')
   .then(results => {
-    results.forEach(result => { 
-      console.log(result); 
-    });
+    for (let i = 0; i < results.length; i++) {
+      console.log(results[i]);
+    }
   });
